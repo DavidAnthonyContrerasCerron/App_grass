@@ -51,14 +51,13 @@
             });
         </script>
 
-        <!-- Botón de Programar Nueva Reserva (Sin ícono y con texto más grande) -->
+        <!-- Botón de Programar Nueva Reserva -->
         <div class="text-center mb-4">
-            <a href="{{ route('reservas.create') }}" class="btn btn-primary rounded-pill shadow-sm px-4 py-2 d-flex align-items-center justify-content-center">
+            <button class="btn btn-primary rounded-pill shadow-sm px-4 py-2 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalCreateReserva">
                 <span style="font-size: 1.25rem;">Programar Nueva Reserva</span>
-            </a>
+            </button>
         </div>
 
-        <!-- Línea separadora debajo del botón -->
         <hr class="my-5" style="border: 2px solid #007bff; width: 70%; margin: auto;"/>
 
         <!-- Mensajes de éxito o error -->
@@ -93,7 +92,7 @@
                         @foreach ($reservas as $reserva)
                             @if ($reserva->estado == 'pendiente')
                                 <tr class="hover-shadow">
-                                    <td>{{ $reserva->fecha }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($reserva->fecha)->format('d-m-Y') }}</td>
                                     <td>{{ $reserva->hora_inicio }}</td>
                                     <td>{{ $reserva->duracion == 0.5 ? 'Media Hora' : ($reserva->duracion == 1 ? '1 Hora' : $reserva->duracion . ' Horas') }}</td>
                                     <td>S/. {{ number_format($reserva->precio, 2) }}</td>
@@ -106,7 +105,7 @@
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-2">Pagar</button>
                                         </form>
-                                        <a href="{{ route('reservas.edit', $reserva->id) }}" class="btn btn-sm btn-warning rounded-pill px-3 py-2">Editar</a>
+                                        <a href="#" class="btn btn-sm btn-warning rounded-pill px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalEditReserva{{ $reserva->id }}">Editar</a>
                                         <form action="{{ route('reservas.destroy', $reserva->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
@@ -114,6 +113,41 @@
                                         </form>
                                     </td>
                                 </tr>
+
+                                <!-- Modal para editar reserva -->
+                                <div class="modal fade" id="modalEditReserva{{ $reserva->id }}" tabindex="-1" aria-labelledby="modalEditReservaLabel{{ $reserva->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalEditReservaLabel{{ $reserva->id }}">Editar Reserva</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{ route('reservas.update', $reserva->id) }}" method="POST" class="d-inline" id="formEditReserva{{ $reserva->id }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div class="mb-3">
+                                                        <label for="fecha" class="form-label">Fecha</label>
+                                                        <input type="date" class="form-control" id="fecha" name="fecha" value="{{ $reserva->fecha }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="hora_inicio" class="form-label">Hora de Inicio</label>
+                                                        <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" value="{{ $reserva->hora_inicio }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="duracion" class="form-label">Duración (Horas)</label>
+                                                        <input type="number" class="form-control" id="duracion{{ $reserva->id }}" name="duracion" value="{{ $reserva->duracion }}" min="0.5" step="0.5" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="precio" class="form-label">Precio</label>
+                                                        <input type="number" class="form-control" id="precio{{ $reserva->id }}" name="precio" value="60" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary w-100">Actualizar Reserva</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
                         @endforeach
                     </tbody>
@@ -121,12 +155,9 @@
             </div>
         </div>
 
-        <!-- Línea separadora entre las tablas -->
-        <hr class="my-5" style="border: 2px solid #007bff; width: 70%; margin: auto;"/>
-
         <!-- Reservas Pagadas -->
         <div class="my-5">
-            <h2 class="text-center text-success mb-4" style="font-size: 2.25rem; font-weight: 600;">Reservas Pagadas</h2>
+            <h2 class="text-center text-muted mb-4" style="font-size: 2.25rem; font-weight: 600;">Reservas Pagadas</h2>
             <div class="table-responsive">
                 <table class="table table-modern table-striped table-bordered text-center">
                     <thead class="thead-dark">
@@ -143,13 +174,13 @@
                         @foreach ($reservas as $reserva)
                             @if ($reserva->estado == 'pagada')
                                 <tr class="hover-shadow">
-                                    <td>{{ $reserva->fecha }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($reserva->fecha)->format('d-m-Y') }}</td>
                                     <td>{{ $reserva->hora_inicio }}</td>
                                     <td>{{ $reserva->duracion == 0.5 ? 'Media Hora' : ($reserva->duracion == 1 ? '1 Hora' : $reserva->duracion . ' Horas') }}</td>
                                     <td>S/. {{ number_format($reserva->precio, 2) }}</td>
                                     <td>S/. {{ number_format($reserva->total, 2) }}</td>
                                     <td class="text-center text-white bg-success font-weight-bold rounded">
-                                        Pagado
+                                        Pagada
                                     </td>
                                 </tr>
                             @endif
@@ -159,122 +190,52 @@
             </div>
         </div>
 
-        <!-- Total de Ingresos -->
-        <div class="card shadow-lg rounded-lg">
-            <div class="card-body">
-                <h3 class="text-center text-primary mb-3" style="font-size: 1.75rem; font-weight: 600;">Total de Ingresos</h3>
-                <div class="text-center">
-                    <strong class="h4 text-primary">S/. {{ number_format($totalIngresos, 2) }}</strong>
+        <!-- Modal para Programar Nueva Reserva -->
+        <div class="modal fade" id="modalCreateReserva" tabindex="-1" aria-labelledby="modalCreateReservaLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalCreateReservaLabel">Programar Nueva Reserva</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('reservas.store') }}" method="POST" id="createReservaForm">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="fecha" class="form-label">Fecha</label>
+                                <input type="date" class="form-control" id="fecha" name="fecha" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hora_inicio" class="form-label">Hora de Inicio</label>
+                                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="duracion" class="form-label">Duración (Horas)</label>
+                                <input type="number" class="form-control" id="duracion" name="duracion" value="1" min="0.5" step="0.5" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="precio" class="form-label">Precio</label>
+                                <input type="number" class="form-control" id="precio" name="precio" value="60" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Programar Reserva</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 @endsection
 
-@section('styles')
-    <style>
-        /* Fuentes personalizadas y colores modernos */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f4f7fb;
-            color: #333;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-            text-transform: uppercase;
-            font-weight: bold;
-            border-radius: 30px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-
-        .table-modern {
-            font-size: 1.1rem;
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 2rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table-modern th, .table-modern td {
-            padding: 14px;
-            text-align: center;
-        }
-
-        .table-modern th {
-            background-color: #343a40;
-            color: white;
-            font-weight: 700;
-        }
-
-        .table-modern td {
-            background-color: #ffffff;
-            color: #333;
-        }
-
-        .table-modern tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .table-modern tr:hover {
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-
-        .alert {
-            border-radius: 15px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            font-size: 1.1rem;
-        }
-
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .hover-shadow:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .btn-primary {
-                font-size: 1rem;
-                padding: 0.8rem 1.5rem;
-            }
-
-            .table-modern {
-                font-size: 1rem;
-            }
-
-            h1 {
-                font-size: 2.25rem;
-            }
-
-            h2 {
-                font-size: 1.75rem;
-            }
-
-            .text-center {
-                padding-right: 10px;
-                padding-left: 10px;
-            }
-        }
-    </style>
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Enviar el formulario de edición automáticamente al cambiar un campo
+            document.querySelectorAll('form[id^="formEditReserva"]').forEach(form => {
+                form.addEventListener('change', function () {
+                    this.submit();
+                });
+            });
+        });
+    </script>
 @endsection
