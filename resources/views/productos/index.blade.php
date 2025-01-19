@@ -1,63 +1,118 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container mt-3">
+    <div class="container mt-4">
         <!-- Título de la página -->
-        <h1 class="text-center mb-3" style="font-family: 'Roboto', sans-serif; font-weight: 700; font-size: 2rem; color: #34495e; letter-spacing: 1px; text-transform: uppercase; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-            Lista de Productos
+        <h1 class="text-center mb-4" style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.8rem; color: #34495e; text-transform: uppercase; border-bottom: 2px solid #2980b9;">
+            Productos
         </h1>
 
         <!-- Barra de búsqueda -->
-        <div class="row mb-3 justify-content-center">
+        <div class="row mb-4 justify-content-center">
             <div class="col-md-6 col-lg-4">
                 <form method="GET" action="{{ route('productos.index') }}" class="d-flex">
-                    <input type="text" name="search" placeholder="Buscar producto..." class="form-control form-control-sm border-0 rounded-pill shadow-sm px-3" value="{{ request('search') }}" style="background-color: #ecf0f1; font-size: 1rem;">
-                    <button type="submit" class="btn btn-primary btn-sm rounded-pill ms-2 px-3 py-1 shadow-sm" style="font-size: 1rem;"><i class="fas fa-search"></i></button>
+                    <input type="text" name="search" placeholder="Buscar producto..." class="form-control form-control-sm rounded-3 shadow-sm px-3 py-2" value="{{ request('search') }}" style="background-color: #f7f7f7; border: 1px solid #ddd;">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-3 ms-2" style="height: 40px; padding: 6px 12px;"><i class="fas fa-search"></i></button>
                 </form>
             </div>
         </div>
 
         <!-- Botón Nuevo Producto -->
-        <div class="text-end mb-3">
-            <a href="{{ route('productos.create') }}" class="btn btn-success btn-sm rounded-pill px-4 py-2 shadow-sm" style="font-size: 1rem;"><i class="fas fa-plus-circle"></i> Nuevo Producto</a>
+        <div class="text-end mb-4">
+            <button class="btn btn-success btn-sm rounded-3 px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateProducto"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
         </div>
 
-        <!-- Tabla de productos más compacta -->
-        <div class="table-responsive shadow-sm rounded-3">
-            <table class="table table-striped table-hover table-borderless">
-                <thead class="table-light" style="font-size: 1rem;">
-                    <tr>
-                        <th class="text-center" style="padding: 10px; font-weight: 600;">Nombre</th>
-                        <th class="text-center" style="padding: 10px; font-weight: 600;">Descripción</th>
-                        <th class="text-center" style="padding: 10px; font-weight: 600;">Precio</th>
-                        <th class="text-center" style="padding: 10px; font-weight: 600;">Cantidad</th>
-                        <th class="text-center" style="padding: 10px; font-weight: 600;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody style="font-size: 0.95rem;">
-                    @foreach($productos as $producto)
-                        <tr class="hover-shadow" style="background-color: #fff; transition: background-color 0.3s ease;">
-                            <td class="text-center" style="padding: 15px; border-bottom: 1px solid #ddd;">{{ $producto->nombre }}</td>
-                            <td class="text-center" style="padding: 15px; border-bottom: 1px solid #ddd;">{{ $producto->descripcion }}</td>
-                            <td class="text-center" style="padding: 15px; border-bottom: 1px solid #ddd;">S/ {{ number_format($producto->precio, 2) }}</td>
-                            <td class="text-center" style="padding: 15px; border-bottom: 1px solid #ddd;">{{ $producto->cantidad }}</td>
-                            <td class="text-center" style="padding: 15px; border-bottom: 1px solid #ddd;">
-                                <a href="{{ route('productos.edit', $producto->id) }}" class="btn btn-warning btn-sm rounded-pill" style="font-size: 0.9rem; padding: 5px 10px;"><i class="fas fa-edit"></i> Editar</a>
-                                <form action="{{ route('productos.destroy', $producto->id) }}" method="POST" style="display:inline;">
+        <!-- Productos organizados en tarjetas -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach($productos as $producto)
+                <div class="col">
+                    <div class="card shadow-sm border-light rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $producto->nombre }}</h5>
+                            <p class="card-text">{{ mb_strimwidth($producto->descripcion, 0, 100, '...') }}</p> <!-- Limitar descripción -->
+                            <p class="card-text"><strong>Precio:</strong> S/ {{ number_format($producto->precio, 2) }}</p>
+                            <p class="card-text"><strong>Cantidad:</strong> {{ $producto->cantidad }}</p>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-warning btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditProducto{{ $producto->id }}"><i class="fas fa-edit"></i> Editar</button>
+                                <form action="{{ route('productos.destroy', $producto->id) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm rounded-pill" style="font-size: 0.9rem; padding: 5px 10px;"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="fas fa-trash-alt"></i> Eliminar</button>
                                 </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Paginación -->
-        <div class="d-flex justify-content-center">
-            {{ $productos->links('pagination::bootstrap-5') }}
+                <!-- Modal para editar producto -->
+                <div class="modal fade" id="modalEditProducto{{ $producto->id }}" tabindex="-1" aria-labelledby="modalEditProductoLabel{{ $producto->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalEditProductoLabel{{ $producto->id }}">Editar Producto</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="{{ route('productos.update', $producto->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <div class="mb-3">
+                                        <label for="nombre" class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $producto->nombre }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="descripcion" class="form-label">Descripción</label>
+                                        <textarea class="form-control" id="descripcion" name="descripcion" required>{{ $producto->descripcion }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="precio" class="form-label">Precio</label>
+                                        <input type="number" class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="cantidad" class="form-label">Cantidad</label>
+                                        <input type="number" class="form-control" id="cantidad" name="cantidad" value="{{ $producto->cantidad }}" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Actualizar Producto</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- Modal para crear nuevo producto -->
+    <div class="modal fade" id="modalCreateProducto" tabindex="-1" aria-labelledby="modalCreateProductoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCreateProductoLabel">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('productos.store') }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="precio" class="form-label">Precio</label>
+                            <input type="number" class="form-control" id="precio" name="precio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidad" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="cantidad" name="cantidad" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Crear Producto</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
